@@ -1533,7 +1533,10 @@ let state = {
   todayStartEarnings: 0,
   goals: [],
   editingGoalId: null,
-  selectedIconId: 'star'
+  selectedIconId: 'star',
+  // Daily archive: { "2026-04-20": 320.47, "2026-04-19": 318.50, ... }
+  dailyEarnings: {},
+  lastActiveDate: null
 };
 
 // ============================================================
@@ -1543,13 +1546,54 @@ function init() {
   initTheme();
   renderThemeGrid();
   loadState();
+
+  // Check date change: if it's a new day, archive yesterday's earnings
   if (state.monthlySalary > 0) {
+    checkAndArchiveDay();
+
     showDashboard();
     startCounter();
   } else {
     showSetup();
   }
   renderIconPicker();
+}
+
+// Get today's date string (YYYY-MM-DD)
+function getTodayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+// Check if the date changed since last session; if so, archive yesterday's earnings
+function checkAndArchiveDay() {
+  const today = getTodayStr();
+
+  // If we have a lastActiveDate and it's different from today → archive
+  if (state.lastActiveDate && state.lastActiveDate !== today) {
+    // Save yesterday's earnings (or whatever was last active day)
+    // Only archive if we actually had earnings that day (>0 or timer was running)
+    if (state.todayStartEarnings > 0 || state.startTime) {
+      // Calculate final earned amount for that day
+      let earnedForThatDay = state.todayStartEarnings;
+      if (state.startTime) {
+        const elapsed = (Date.now() - state.startTime) / 1000;
+        earnedForThatDay += elapsed * state.secondlyRate;
+      }
+      if (earnedForThatDay > 0) {
+        state.dailyEarnings[state.lastActiveDate] = Math.round(earnedForThatDay * 100) / 100;
+      }
+    }
+
+    // Reset for new day
+    state.todayStartEarnings = 0;
+    state.startTime = null;
+    // Keep monthly salary and other settings
+  }
+
+  // Update last active date to today
+  state.lastActiveDate = today;
+  saveState();
 }
 
 function loadState() {
@@ -1571,7 +1615,9 @@ function saveState() {
     secondlyRate: state.secondlyRate,
     startTime: state.startTime,
     todayStartEarnings: state.todayStartEarnings,
-    goals: state.goals
+    goals: state.goals,
+    dailyEarnings: state.dailyEarnings,
+    lastActiveDate: state.lastActiveDate
   }));
 }
 
@@ -1626,34 +1672,102 @@ let counterInterval = null;
 function startCounter() {
   if (counterInterval) clearInterval(counterInterval);
   counterInterval = setInterval(updateDisplay, 100);
+  // Auto-archive every 5 minutes to prevent data loss
+  if (archiveInterval) clearInterval(archiveInterval);
+  archiveInterval = setInterval(autoArchiveToday, 5 * 60 * 1000);
   updateDisplay();
 }
 
+let archiveInterval = null;
+
+// Periodically save today's progress into dailyEarnings as a checkpoint
+function autoArchiveToday() {
+  if (!state.startTime || !state.secondlyRate) return;
+  const elapsed = (Date.now() - state.startTime) / 1000;
+  const earned = state.todayStartEarnings + elapsed * state.secondlyRate;
+  const todayStr = getTodayStr();
+
+  // Update checkpoint: save current earned as todayStartEarnings baseline
+  state.todayStartEarnings = earned;
+  state.startTime = Date.now(); // Reset timer from now
+  state.dailyEarnings[todayStr] = earned; // Keep latest checkpoint
+  saveState();
+}
+
+// Archive on page close/unload
+window.addEventListener('beforeunload', function() {
+  if (state.monthlySalary > 0) {
+    // Save final snapshot
+    let earned = state.todayStartEarnings;
+    if (state.startTime && state.secondlyRate) {
+      const elapsed = (Date.now() - state.startTime) / 1000;
+      earned += elapsed * state.secondlyRate;
+    }
+    const todayStr = getTodayStr();
+    if (earned > 0) {
+      state.dailyEarnings[todayStr] = Math.round(earned * 100) / 100;
+    }
+    state.lastActiveDate = todayStr;
+    try { localStorage.setItem('salarystream_state', JSON.stringify({
+      monthlySalary: state.monthlySalary,
+      workDaysPerMonth: state.workDaysPerMonth,
+      workHoursPerDay: state.workHoursPerDay,
+      hourlyRate: state.hourlyRate,
+      secondlyRate: state.secondlyRate,
+      startTime: state.startTime,
+      todayStartEarnings: state.todayStartEarnings,
+      goals: state.goals,
+      dailyEarnings: state.dailyEarnings,
+      lastActiveDate: state.lastActiveDate
+    })); } catch(e) {}
+  }
+});
+
 function updateDisplay() {
   if (!state.startTime || !state.secondlyRate) return;
-  
+
   const elapsed = (Date.now() - state.startTime) / 1000; // seconds
   const earned = state.todayStartEarnings + elapsed * state.secondlyRate;
-  
+
   // Show plain 2-decimal format
   document.getElementById('counterValue').textContent = earned.toFixed(2);
-  
+
   // Update stats
   document.getElementById('todayEarned').textContent = '¥' + formatMoney(earned).full;
-  
-  // Month estimate (rough)
-  const monthEstimate = earned * state.workDaysPerMonth;
-  document.getElementById('monthEarned').textContent = '¥' + Math.round(monthEstimate).toLocaleString();
-  
+
+  // Month earned: sum of archived days + today's real-time earnings
+  const monthTotal = getMonthTotal(earned);
+  document.getElementById('monthEarned').textContent = '¥' + Math.round(monthTotal).toLocaleString();
+
   // Monthly progress (% of salary earned this month)
-  const monthPct = ((monthEstimate / state.monthlySalary) * 100).toFixed(1);
+  const monthPct = ((monthTotal / state.monthlySalary) * 100).toFixed(1);
   document.getElementById('monthProgress').textContent = Math.min(parseFloat(monthPct), 999).toFixed(1) + '%';
-  
+
   // Update equivalents
   updateEquivalents(earned);
-  
+
   // Update goals
-  updateGoalsProgress(earned);
+  updateGoalsProgress(monthTotal); // Use month total for goal progress (more meaningful)
+}
+
+// Calculate total earnings for current month: archived days + today real-time
+function getMonthTotal(todayRealtimeEarned) {
+  const todayStr = getTodayStr();
+  let total = 0;
+  const yearMonth = todayStr.substring(0, 7); // "2026-04"
+
+  for (const dateStr in state.dailyEarnings) {
+    if (dateStr.substring(0, 7) === yearMonth && state.dailyEarnings.hasOwnProperty(dateStr)) {
+      total += state.dailyEarnings[dateStr];
+    }
+  }
+
+  // Add today's realtime earnings
+  if (todayRealtimeEarned > 0) {
+    total += todayRealtimeEarned;
+  }
+
+  return total;
 }
 
 function formatMoney(num) {
@@ -1964,21 +2078,27 @@ function closeSettingsOnOverlay(e) {
 function saveSettings() {
   const salary = parseFloat(document.getElementById('settingsMonthly').value);
   if (!salary || salary <= 0) { alert('请输入有效月薪'); return; }
-  
-  // Recalculate current earnings before rate change
+
+  // Archive current session's earnings BEFORE rate change
   let currentEarned = 0;
   if (state.startTime && state.secondlyRate > 0) {
     const elapsed = (Date.now() - state.startTime) / 1000;
     currentEarned = state.todayStartEarnings + elapsed * state.secondlyRate;
   }
-  
+  if (currentEarned > 0) {
+    const todayStr = getTodayStr();
+    // Add to existing or create new
+    const prev = state.dailyEarnings[todayStr] || 0;
+    state.dailyEarnings[todayStr] = Math.round((prev + currentEarned) * 100) / 100;
+  }
+
   state.monthlySalary = salary;
   state.workDaysPerMonth = parseInt(document.getElementById('settingsWorkDays').value) || 22;
   state.workHoursPerDay = parseInt(document.getElementById('settingsWorkHours').value) || 8;
   calculateRates();
   state.startTime = Date.now(); // Reset timer
   state.todayStartEarnings = 0;
-  
+
   saveState();
   closeSettings();
   showDashboard();
