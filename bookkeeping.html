@@ -404,8 +404,57 @@
     border-radius:var(--radius-md);
     transition:all 0.2s;
     animation: slideInTx 0.3s ease-out;
+    position:relative;
   }
   @keyframes slideInTx { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+
+  /* Transaction action buttons */
+  .tx-actions {
+    display:flex;gap:4px;flex-shrink:0;opacity:0;transition:opacity 0.2s;
+  }
+  .tx-item:hover .tx-actions { opacity:1; }
+  .tx-action-btn {
+    width:28px;height:28px;
+    border-radius:6px;
+    border:none;
+    background:rgba(255,255,255,0.06);
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--text-muted);
+    transition:all 0.2s;
+  }
+  .tx-action-btn:hover { background:rgba(255,255,255,0.12); color:var(--text-primary); }
+  .tx-action-btn.tx-delete:hover { background:rgba(239,68,68,0.12); color:#ef4444; }
+  .tx-action-btn.tx-edit:hover { background:rgba(59,130,246,0.12); color:#3b82f6; }
+  .tx-action-btn svg { width:14px;height:14px; }
+
+  /* Inline edit overlay for transaction */
+  .tx-inline-edit {
+    position:absolute;inset:0;
+    background:var(--bg-card);
+    border-radius:var(--radius-md);
+    padding:16px 18px;
+    z-index:5;
+    display:flex;align-items:center;gap:10px;
+    animation:fadeIn 0.15s ease;
+  }
+  .tx-inline-edit input {
+    flex:1;padding:7px 10px;border-radius:8px;
+    border:1px solid var(--border-color);
+    background:rgba(255,255,255,0.05);color:var(--text-primary);
+    font-family:var(--font-display);font-size:0.84rem;outline:none;
+    transition:border-color 0.2s;
+  }
+  .tx-inline-edit input:focus { border-color:var(--accent-main);box-shadow:0 0 0 3px var(--accent-dim); }
+  .tx-inline-edit-actions { display:flex;gap:4px;flex-shrink:0; }
+  .tx-inline-edit-actions button {
+    padding:6px 12px;border-radius:8px;font-family:var(--font-display);
+    font-size:0.75rem;font-weight:600;cursor:pointer;border:1px solid var(--border-color);
+    transition:all 0.2s;
+  }
+  .tx-btn-save { background:#10b981;color:#fff;border-color:#10b981; }
+  .tx-btn-save:hover { opacity:0.85; }
+  .tx-btn-cancel { background:transparent;color:var(--text-muted); }
 
   .tx-icon {
     width:38px;height:38px;
@@ -1012,7 +1061,7 @@ function renderHistory() {
   }
 
   let html = '';
-  bk.transactions.forEach(tx => {
+  bk.transactions.forEach((tx, idx) => {
     // Look up icon: first try shopItems by id, then fallback
     let iconSvg = '';
     const presetItem = shopItems.find(i => i.id === tx.iconId);
@@ -1031,7 +1080,7 @@ function renderHistory() {
     const cls = tx.type === 'deposit' ? 'positive' : 'negative';
 
     html += `
-      <div class="tx-item">
+      <div class="tx-item" data-tx-idx="${idx}">
         <div class="tx-icon" style="background:${tx.type === 'deposit' ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)'}">
           ${iconSvg}
         </div>
@@ -1040,10 +1089,140 @@ function renderHistory() {
           <div class="tx-time">${timeStr}</div>
         </div>
         <div class="tx-amount ${cls}">${sign}¥${tx.amount.toFixed(2)}</div>
+        <div class="tx-actions">
+          <button class="tx-action-btn tx-edit" onclick="startEditTx(${idx},event)" title="编辑此记录">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="tx-action-btn tx-delete" onclick="deleteTx(${idx},event)" title="删除并退款">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          </button>
+        </div>
       </div>`;
   });
 
   list.innerHTML = html;
+}
+
+// ============================================================
+// TRANSACTION EDIT / DELETE — with refund logic
+// ============================================================
+
+let editingTxIdx = null;
+
+function startEditTx(idx, event) {
+  event.stopPropagation();
+  closeTxEdit();
+
+  const tx = bk.transactions[idx];
+  if (!tx) return;
+
+  editingTxIdx = idx;
+  const card = document.querySelector(`[data-tx-idx="${idx}"]`);
+  if (!card) return;
+
+  const isDeposit = tx.type === 'deposit';
+
+  const editHtml = `
+    <div class="tx-inline-edit" onclick="event.stopPropagation()">
+      <input type="text" id="editTxName_${idx}" value="${escapeHtml(tx.name)}" placeholder="名称" style="min-width:120px;">
+      <input type="number" id="editTxAmount_${idx}" value="${tx.amount}" min="0" step="0.01" placeholder="金额" style="width:90px;">
+      <div class="tx-inline-edit-actions">
+        <button class="tx-btn-cancel" onclick="cancelTxEdit()">取消</button>
+        <button class="tx-btn-save" onclick="saveTxEdit(${idx})">保存</button>
+      </div>
+    </div>`;
+
+  card.insertAdjacentHTML('beforeend', editHtml);
+  setTimeout(() => { document.getElementById(`editTxName_${idx}`).focus(); }, 50);
+}
+
+function saveTxEdit(idx) {
+  const tx = bk.transactions[idx];
+  if (!tx) return;
+
+  const newName = document.getElementById(`editTxName_${idx}`).value.trim() || '(未命名)';
+  const newAmount = parseFloat(document.getElementById(`editTxAmount_${idx}`).value);
+
+  if (isNaN(newAmount) || newAmount < 0) { alert('请输入有效金额'); return; }
+
+  const oldAmount = tx.amount;
+  const diff = newAmount - oldAmount;
+
+  // Refund or deduct the difference
+  if (diff !== 0) {
+    if (tx.type === 'spend') {
+      // Spending more → reduce balance more; spending less → refund
+      bk.balance -= diff;
+      bk.totalSpent += diff;
+    } else {
+      // Deposit: depositing more → increase balance; depositing less → refund
+      bk.balance += diff;
+      bk.totalDeposited += diff;
+    }
+
+    // Show float effect for the adjustment
+    if ((tx.type === 'spend' && diff < 0) || (tx.type === 'deposit' && diff > 0)) {
+      spawnFloatNumber(Math.abs(diff), true); // green for refund
+    } else {
+      spawnFloatNumber(Math.abs(diff), false); // red for additional charge
+    }
+  }
+
+  tx.name = newName;
+  tx.amount = newAmount;
+  tx.time = Date.now(); // update timestamp
+
+  closeTxEdit();
+  saveBKState();
+  updateBalanceDisplay(0);
+  renderHistory();
+  renderShopGrid(); // update affordability states
+}
+
+function cancelTxEdit() {
+  closeTxEdit();
+}
+
+function closeTxEdit() {
+  if (editingTxIdx === null) return;
+  const el = document.querySelector('.tx-inline-edit');
+  if (el) el.remove();
+  editingTxIdx = null;
+}
+
+function deleteTx(idx, event) {
+  event.stopPropagation();
+
+  const tx = bk.transactions[idx];
+  if (!tx) return;
+
+  const confirmMsg = tx.type === 'spend'
+    ? `确认删除「${tx.name}」(-¥${tx.amount.toFixed(2)})？\n\n将返还 ¥${tx.amount.toFixed(2)} 到余额`
+    : `确认删除「${tx.name}」(+¥${tx.amount.toFixed(2)})？\n\n将从余额中扣除 ¥${tx.amount.toFixed(2)}`;
+
+  if (!confirm(confirmMsg)) return;
+
+  // Refund logic
+  if (tx.type === 'spend') {
+    // Was a purchase → refund money back
+    bk.balance += tx.amount;
+    bk.totalSpent -= tx.amount;
+    spawnFloatNumber(tx.amount, true); // green float: +¥xx refunded
+  } else {
+    // Was a deposit → take it back
+    bk.balance -= tx.amount;
+    bk.totalDeposited -= tx.amount;
+    spawnFloatNumber(tx.amount, false); // red float: -¥xx removed
+  }
+
+  // Remove transaction
+  bk.transactions.splice(idx, 1);
+
+  closeTxEdit();
+  saveBKState();
+  updateBalanceDisplay(0);
+  renderHistory();
+  renderShopGrid(); // update card disabled states
 }
 
 function formatTime(ts) {
@@ -1198,6 +1377,10 @@ document.addEventListener('click', function(e) {
     // Save on click away (convenient)
     saveEditItem(editingItemId);
   }
+  // Close tx edit on click away (cancel)
+  if (editingTxIdx !== null && !e.target.closest('.tx-inline-edit') && !e.target.closest('.tx-actions')) {
+    cancelTxEdit();
+  }
 });
 
 // Also close inline edit on Escape key
@@ -1207,6 +1390,8 @@ document.addEventListener('keydown', function(e) {
       closeCustomForm();
     } else if (editingItemId) {
       cancelEditItem(editingItemId);
+    } else if (editingTxIdx !== null) {
+      cancelTxEdit();
     }
   }
 });
