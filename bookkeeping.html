@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="gold">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💰 薪流 · 记账</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ===== Reset & Base ===== */
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  
+  :root {
+    --bg-primary: #07080c;
+    --bg-secondary: #0d1117;
+    --bg-card: #131920;
+    --bg-card-hover: #1a2332;
+    --border-color: rgba(255,255,255,0.06);
+    --text-primary: #e6edf3;
+    --text-secondary: #8b949e;
+    --text-muted: #565d66;
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --font-display: 'Outfit', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+    --shadow-md: 0 8px 32px rgba(0,0,0,0.35);
+    --shadow-lg: 0 16px 64px rgba(0,0,0,0.45);
+  }
+
+  /* ===== Theme System ===== */
+  html { transition: background-color 0.4s ease; }
+  [data-theme='gold'] { --accent-main: #f59e0b; --accent-light: #fbbf24; --accent-dim: rgba(245,158,11,0.15); --gradient-accent: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #f59e0b 100%); --orb1: rgba(245,158,11,0.18); --orb2: rgba(16,185,129,0.08); --orb3: rgba(168,85,247,0.06); }
+  [data-theme='emerald'] { --accent-main: #10b981; --accent-light: #34d399; --accent-dim: rgba(16,185,129,0.14); --gradient-accent: linear-gradient(135deg, #059669 0%, #34d399 50%, #10b981 100%); --orb1: rgba(16,185,129,0.18); --orb2: rgba(6,182,212,0.08); --orb3: rgba(139,92,246,0.06); }
+  [data-theme='ocean'] { --accent-main: #3b82f6; --accent-light: #60a5fa; --accent-dim: rgba(59,130,246,0.14); --gradient-accent: linear-gradient(135deg, #2563eb 0%, #60a5fa 50%, #3b82f6 100%); --orb1: rgba(59,130,246,0.18); --orb2: rgba(168,85,247,0.08); --orb3: rgba(236,72,153,0.06); }
+  [data-theme='rose'] { --accent-main: #ec4899; --accent-light: #f472b6; --accent-dim: rgba(236,72,153,0.14); --gradient-accent: linear-gradient(135deg, #db2777 0%, #f472b6 50%, #ec4899 100%); --orb1: rgba(236,72,153,0.18); --orb2: rgba(244,63,94,0.08); --orb3: rgba(245,158,11,0.06); }
+  [data-theme='violet'] { --accent-main: #a855f7; --accent-light: #c084fc; --accent-dim: rgba(168,85,247,0.14); --gradient-accent: linear-gradient(135deg, #9333ea 0%, #c084fc 50%, #a855f7 100%); --orb1: rgba(168,85,247,0.18); --orb2: rgba(59,130,246,0.08); --orb3: rgba(236,72,153,0.06); }
+  [data-theme='coral'] { --accent-main: #f97316; --accent-light: #fb923c; --accent-dim: rgba(249,115,22,0.14); --gradient-accent: linear-gradient(135deg, #ea580c 0%, #fb923c 50%, #f97316 100%); --orb1: rgba(249,115,22,0.18); --orb2: rgba(245,158,11,0.1); --orb3: rgba(239,68,68,0.06); }
+  [data-theme='cyan'] { --accent-main: #06b6d4; --accent-light: #22d3ee; --accent-dim: rgba(6,182,212,0.14); --gradient-accent: linear-gradient(135deg, #0891b2 0%, #22d3ee 50%, #06b6d4 100%); --orb1: rgba(6,182,212,0.18); --orb2: rgba(16,185,129,0.08); --orb3: rgba(59,130,246,0.06); }
+  [data-theme='lime'] { --accent-main: #84cc16; --accent-light: #a3e635; --accent-dim: rgba(132,204,22,0.13); --gradient-accent: linear-gradient(135deg, #65a30d 0%, #a3e635 50%, #84cc16 100%); --orb1: rgba(132,204,22,0.18); --orb2: rgba(245,158,11,0.07); --orb3: rgba(20,184,166,0.06); }
+  [data-theme='ruby'] { --accent-main: #e11d48; --accent-light: #fb7185; --accent-dim: rgba(225,29,72,0.14); --gradient-accent: linear-gradient(135deg, #be123c 0%, #fb7185 50%, #e11d48 100%); --orb1: rgba(225,29,72,0.18); --orb2: rgba(236,72,153,0.08); --orb3: rgba(168,85,247,0.06); }
+  [data-theme='light'] {
+    --bg-primary: #f8fafc; --bg-secondary: #f1f5f9; --bg-card: #ffffff; --bg-card-hover: #f8fafc;
+    --border-color: rgba(0,0,0,0.08); --text-primary: #0f172a; --text-secondary: #475569; --text-muted: #94a3b8;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.06); --shadow-md: 0 8px 32px rgba(0,0,0,0.08); --shadow-lg: 0 16px 64px rgba(0,0,0,0.1);
+    --accent-main: #0ea5e9; --accent-light: #38bdf8; --accent-dim: rgba(14,165,233,0.1);
+    --gradient-accent: linear-gradient(135deg, #0284c7 0%, #38bdf8 50%, #0ea5e9 100%);
+    --orb1: rgba(14,165,233,0.08); --orb2: rgba(99,102,241,0.05); --orb3: rgba(236,72,153,0.04);
+  }
+
+  body {
+    font-family: var(--font-display);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.6;
+    transition: background-color 0.4s ease;
+  }
+
+  /* ===== Background Atmosphere ===== */
+  .bg-atmosphere { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .glow-orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.5; animation: floatOrb 25s ease-in-out infinite alternate; }
+  .glow-orb:nth-child(1) { width:450px;height:450px;background:radial-gradient(circle,var(--orb1),transparent 70%);top:-8%;right:-5%;animation-delay:0s; }
+  .glow-orb:nth-child(2) { width:350px;height:350px;background:radial-gradient(circle,var(--orb2),transparent 70%);bottom:10%;left:-5%;animation-delay:-7s; }
+  .glow-orb:nth-child(3) { width:250px;height:250px;background:radial-gradient(circle,var(--orb3),transparent 70%);top:40%;left:30%;animation-delay:-14s; }
+  @keyframes floatOrb { 0%{transform:translate(0,0) scale(1);} 33%{transform:translate(30px,-30px) scale(1.05);} 66%{transform:translate(-20px,20px) scale(0.95);} 100%{transform:translate(15px,10px) scale(1.02);} }
+
+  /* Grid overlay */
+  body::before { content:''; position:fixed; inset:0; background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0); background-size:40px 40px; pointer-events:none; z-index:1; }
+
+  /* ===== Header ===== */
+  .header { position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border-color);backdrop-filter:blur(12px);background:rgba(7,8,12,0.7);}
+  .header-left { display:flex; align-items:center; gap:14px; }
+  .logo-icon { width:38px;height:38px;background:var(--gradient-accent);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(245,158,11,0.25);flex-shrink:0; }
+  .logo-icon svg { width:20px;height:20px;color:#000; }
+  .logo-text { font-size:1.15rem;font-weight:700;letter-spacing:-0.02em;background:var(--gradient-accent);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+  .header-right { display:flex; align-items:center; gap:10px; }
+
+  /* Back button */
+  .btn-back { display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);font-family:var(--font-display);font-size:0.83rem;font-weight:600;color:var(--text-secondary);background:rgba(255,255,255,0.04);border:1px solid var(--border-color);cursor:pointer;transition:all 0.2s;text-decoration:none; }
+  .btn-back:hover { color:var(--text-primary);background:rgba(255,255,255,0.08);transform:translateX(-2px); }
+  .btn-back svg { width:16px;height:16px;transition:transform 0.2s; }
+  .btn-back:hover svg { transform: translateX(-2px); }
+
+  /* ===== Main Layout ===== */
+  .main-container { position:relative;z-index:10;max-width:900px;margin:0 auto;padding:24px 20px 60px; }
+
+  /* ===== Balance Card (Hero) ===== */
+  .balance-section { margin-bottom:32px; }
+  .balance-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 36px 28px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
+  .balance-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--gradient-accent);
+  }
+  .balance-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--accent-main);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .balance-label .live-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: pulseLive 2s ease-in-out infinite;
+  }
+  @keyframes pulseLive { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+  .balance-amount {
+    font-family: var(--font-mono);
+    font-size: clamp(2.5rem, 7vw, 4rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--text-primary);
+    position: relative;
+    display: inline-block;
+  }
+  .balance-currency {
+    font-size: 0.55em;
+    vertical-align: top;
+    opacity: 0.5;
+    margin-right: 4px;
+  }
+  .balance-subtitle {
+    margin-top: 12px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+  .balance-sub-item { display:flex; align-items:center; gap:4px; }
+  .balance-sub-item svg { width:14px;height:14px;opacity:0.7; }
+  .income-rate { color: #10b981; font-family:var(--font-mono); font-weight:600; font-size:0.78rem; }
+  .spent-total { color: #ef4444; font-family:var(--font-mono); font-weight:600; font-size:0.78rem; }
+
+  /* ===== Action Bar ===== */
+  .action-bar { display:flex; gap:12px; margin-bottom:28px; justify-content:center; }
+  .action-btn {
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .action-btn svg { width:16px;height:16px; }
+  .action-btn-deposit {
+    background: var(--accent-dim);
+    color: var(--accent-light);
+    border-color: rgba(245,158,11,0.2);
+  }
+  .action-btn-deposit:hover { background: rgba(245,158,11,0.2); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245,158,11,0.15); }
+  .action-btn-withdraw {
+    background: rgba(239,68,68,0.08);
+    color: #f87171;
+    border-color: rgba(239,68,68,0.15);
+  }
+  .action-btn-withdraw:hover { background: rgba(239,68,68,0.15); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(239,68,68,0.12); }
+
+  /* ===== Shop Grid ===== */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title svg { width:20px;height:20px; color: var(--accent-main); }
+  .section-badge {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--accent-dim);
+    color: var(--accent-light);
+  }
+
+  .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:14px; margin-bottom:36px; }
+
+  .shop-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 20px 16px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+  }
+  .shop-card:hover {
+    border-color: var(--accent-main);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md), 0 0 20px var(--accent-dim);
+    background: var(--bg-card-hover);
+  }
+  .shop-card:active { transform: translateY(0) scale(0.97); }
+  .shop-card.disabled { opacity: 0.4; pointer-events: none; filter: grayscale(0.5); }
+
+  .shop-icon-wrap {
+    width:52px;height:52px;
+    border-radius: var(--radius-sm);
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:12px;
+  }
+  .shop-icon-wrap svg { width:26px;height:26px; }
+  .shop-name { font-size:0.88rem;font-weight:600;color:var(--text-primary);margin-bottom:6px;line-height:1.3; }
+  .shop-price { font-family:var(--font-mono);font-size:1rem;font-weight:700;color:var(--accent-light);margin-bottom:12px; }
+  .shop-buy-hint { font-size:0.7rem;color:var(--text-muted);display:flex;align-items:center;gap:4px; }
+  .shop-buy-hint svg { width:12px;height:12px; }
+
+  /* Custom item card */
+  .custom-shop-card {
+    border: 2px dashed var(--border-color);
+    background: transparent;
+  }
+  .custom-shop-card:hover {
+    border-color: var(--accent-main);
+    background: var(--accent-dim);
+  }
+  .custom-shop-card .shop-name { color: var(--text-muted); }
+  .custom-shop-card .shop-price { color: var(--text-muted); font-size: 0.85rem; }
+
+  /* ===== Transaction History ===== */
+  .history-list { display:flex; flex-direction:column; gap:8px; max-height:400px; overflow-y:auto; padding-right:4px; scrollbar-width:thin; scrollbar-color:var(--border-color) transparent; }
+  .history-list::-webkit-scrollbar { width:4px; }
+  .history-list::-webkit-scrollbar-track { background:transparent; }
+  .history-list::-webkit-scrollbar-thumb { background:var(--border-color); border-radius:999px; }
+
+  .tx-item {
+    display:flex; align-items:center; gap:14px;
+    padding:14px 16px;
+    background:var(--bg-card);
+    border:1px solid var(--border-color);
+    border-radius:var(--radius-md);
+    transition:all 0.2s;
+    animation: slideInTx 0.3s ease-out;
+  }
+  @keyframes slideInTx { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+
+  .tx-icon {
+    width:38px;height:38px;
+    border-radius:var(--radius-sm);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .tx-icon svg { width:18px;height:18px; }
+  .tx-info { flex:1;min-width:0; }
+  .tx-desc { font-size:0.84rem;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .tx-time { font-size:0.7rem;color:var(--text-muted);margin-top:2px; }
+  .tx-amount { font-family:var(--font-mono);font-size:0.92rem;font-weight:700;flex-shrink:0; }
+  .tx-amount.positive { color:#10b981; }
+  .tx-amount.negative { color:#ef4444; }
+  .tx-empty { text-align:center;padding:48px 20px;color:var(--text-muted);font-size:0.88rem; }
+  .tx-empty svg { width:48px;height:48px;opacity:0.3;margin-bottom:12px;display:inline-block; }
+
+  /* ===== Floating Number Animation (the key feature!) ===== */
+  .float-layer { position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden; }
+  .float-number {
+    position:absolute;
+    font-family:var(--font-mono);
+    font-weight:800;
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    pointer-events:none;
+    will-change: transform, opacity;
+    animation: floatUp 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    text-shadow: 0 2px 8px currentColor;
+    white-space: nowrap;
+  }
+  .float-number.spend { color: #ef4444; }
+  .float-number.deposit { color: #10b981; }
+  @keyframes floatUp {
+    0%   { transform: translateY(0) scale(0.6); opacity: 0; }
+    15%  { transform: translateY(-10px) scale(1.15); opacity: 1; }
+    30%  { transform: translateY(-25px) scale(1); opacity: 1; }
+    100% { transform: translateY(-120px) scale(0.85); opacity: 0; }
+  }
+
+  /* ===== Shake Animation for insufficient funds ===== */
+  @keyframes shakeCard {
+    0%,100%{transform:translateX(0);}
+    15%{transform:translateX(-6px);}
+    30%{transform:translateX(6px);}
+    45%{transform:translateX(-4px)}
+    60%{transform:translateX(4px)}
+    75%{transform:translateX(-2px)}
+    90%{transform:translateX(2px)}
+  }
+  .shake { animation: shakeCard 0.5s ease-in-out; }
+
+  /* ===== Income Flow Indicator ===== */
+  .flow-indicator {
+    display:flex; align-items:center; gap:6px;
+    padding:6px 14px;
+    border-radius:999px;
+    background:rgba(16,185,129,0.08);
+    border:1px solid rgba(16,185,129,0.15);
+    font-size:0.74rem;
+    color:#10b981;
+    font-family:var(--font-mono);
+    font-weight:600;
+    margin-top:16px;
+    justify-content:center;
+    width:fit-content;
+    margin-left:auto;
+    margin-right:auto;
+  }
+  .flow-indicator .flow-arrow { animation: flowPulse 1s ease-in-out infinite; }
+  @keyframes flowPulse { 0%,100%{transform:translateX(0);} 50%{transform:translateX(3px);} }
+
+  /* ===== No Setup State ===== */
+  .no-setup {
+    text-align:center;padding:80px 20px;
+  }
+  .no-setup svg { width:64px;height:64px;opacity:0.3;margin-bottom:20px;display:inline-block; }
+  .no-setup h2 { font-size:1.3rem;font-weight:700;margin-bottom:10px;color:var(--text-secondary); }
+  .no-setup p { color:var(--text-muted);font-size:0.9rem;margin-bottom:24px; }
+  .no-setup a { color:var(--accent-light);font-weight:600;text-decoration:none; }
+
+  /* ===== Responsive ===== */
+  @media(max-width:600px){
+    .header{padding:12px 16px;}
+    .main-container{padding:16px 14px 40px;}
+    .balance-card{padding:28px 20px;}
+    .shop-grid{grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;}
+    .action-bar{flex-direction:column;align-items:stretch;}
+    .action-btn{justify-content:center;padding:12px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg-atmosphere">
+  <div class="glow-orb"></div>
+  <div class="glow-orb"></div>
+  <div class="glow-orb"></div>
+</div>
+
+<!-- Floating number layer (for -¥xxx effects) -->
+<div class="float-layer" id="floatLayer"></div>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-left">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2z"/><path d="M2 9v1c0 1.1.9 2 2 2h1"/><path d="M16 11h.01"/></svg>
+    </div>
+    <span class="logo-text">薪流 · 记账</span>
+  </div>
+  <div class="header-right">
+    <a href="./index.html" class="btn-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      返回主页
+    </a>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="main-container" id="appContainer">
+
+  <!-- No Setup Warning (shown when main app hasn't been configured) -->
+  <div id="noSetupPanel" style="display:none;">
+    <div class="no-setup">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+      <h2>还没有设置薪资信息</h2>
+      <p>请先在主页面输入月薪，然后回来开始记账~</p>
+      <a href="./index.html">去设置 →</a>
+    </div>
+  </div>
+
+  <!-- Main Bookkeeping UI -->
+  <div id="bookUI" style="display:none;">
+
+    <!-- Balance Card -->
+    <section class="balance-section">
+      <div class="balance-card">
+        <div class="balance-label">
+          <span class="live-dot"></span>
+          存款余额（实时）
+        </div>
+        <div class="balance-amount">
+          <span class="balance-currency">¥</span><span id="balanceDisplay">0.00</span>
+        </div>
+        <div class="flow-indicator" id="flowIndicator" style="display:none;">
+          <svg class="flow-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          +<span id="flowRateDisplay">0.00</span>/秒
+        </div>
+        <div class="balance-subtitle">
+          <div class="balance-sub-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+            累计存入: <span class="income-rate" id="totalDeposited">¥0</span>
+          </div>
+          <div class="balance-sub-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6 6 6"/></svg>
+            累计消费: <span class="spent-total" id="totalSpent">¥0</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <div class="action-bar">
+      <button class="action-btn action-btn-deposit" onclick="depositAll()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        存入全部收入
+      </button>
+      <button class="action-btn action-btn-deposit" onclick="depositCustom()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M12 10v4M10 12h4"/></svg>
+        自定义存入
+      </button>
+      <button class="action-btn action-btn-withdraw" onclick="resetBalance()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        重置账本
+      </button>
+    </div>
+
+    <!-- Shop Section -->
+    <section class="shop-section">
+      <div class="section-header">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/></svg>
+          消费商店 — 点击购买
+        </div>
+        <span class="section-badge" id="shopCount"></span>
+      </div>
+      <div class="shop-grid" id="shopGrid"></div>
+    </section>
+
+    <!-- Transaction History -->
+    <section class="history-section">
+      <div class="section-header">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          流水记录
+        </div>
+        <span class="section-badge" id="txCount">0 笔</span>
+      </div>
+      <div class="history-list" id="txList">
+        <div class="tx-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          还没有记录，买点东西吧~
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<script>
+// ============================================================
+// SHOP ITEMS — Things you can buy with your earned money
+// ============================================================
+const SHOP_ITEMS = [
+  { id:'coffee', name:'星巴克拿铁', price:38, icon:'☕', bg:'linear-gradient(135deg,#6f4e37,#a67c52)' },
+  { id:'lunch', name:'工作日午餐', price:25, icon:'🍱', bg:'linear-gradient(135deg,#dc2626,#f97316)' },
+  { id:'snack', name:'下午茶零食', price:15, icon:'🍿', bg:'linear-gradient(135deg,#eab308,#f97316)' },
+  { id:'drink', name:'奶茶一杯', price:18, icon:'🧋', bg:'linear-gradient(135deg,#ec4899,#f472b6)' },
+  { id:'bus', name:'地铁/公交', price:6, icon:'🚇', bg:'linear-gradient(135deg,#3b82f6,#60a5fa)' },
+  { id:'game', name:'Steam 小游戏', price:30, icon:'🎮', bg:'linear-gradient(135deg,#8b5cf6,#a78bfa)' },
+  { id:'movie', name:'电影票一张', price:45, icon:'🎬', bg:'linear-gradient(135deg,#ef4444,#f87171)' },
+  { id:'book', name:'电子书一本', price:20, icon:'📖', bg:'linear-gradient(135deg,#059669,#10b981)' },
+  { id:'music', name:'音乐专辑', price:12, icon:'🎵', bg:'linear-gradient(135deg,#0ea5e9,#38bdf8)' },
+  { id:'skin', name:'游戏皮肤', price:68, icon:'✨', bg:'linear-gradient(135deg,#a855f7,#c084fc)' },
+  { id:'delivery', name:'外卖一顿', price:35, icon:'🛵', bg:'linear-gradient(135deg,#f59e0b,#fbbf24)' },
+  { id:'fruit', name:'水果拼盘', price:28, icon:'🍓', bg:'linear-gradient(135deg,#ef4444,#fb7185)' },
+  { id:'phone_charge', name:'话费充值 50', price:50, icon:'📱', bg:'linear-gradient(135deg,#0284c7,#0ea5e9)' },
+  { id:'parking', name:'停车费', price:10, icon:'🅿️', bg:'linear-gradient(135deg,#475569,#94a3b8)' },
+  { id:'tip', name:'打赏/小费', price:5, icon:'💝', bg:'linear-gradient(135deg,#ec4899,#f43f5e)' },
+  { id:'custom', name:'+ 自定义消费', price:0, icon:'➕', bg:'transparent' }, // special: opens prompt
+];
+
+// SVG Icons for transaction history
+const ICON_SVG = {
+  coffee: '<svg viewBox="0 0 24 24" fill="none" stroke="#a67c52" stroke-width="2"><path d="M17 8h1a4 4 0 110 8h-1M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8zM6 2v3M10 2v3M14 2v3"/></svg>',
+  lunch: '<svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2M7 2v20M21 15V2v0a5 5 0 00-5 5c0 2 1 3.5 1.5 4.5S19 13.5 19 15z"/></svg>',
+  snack: '<svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><path d="M8 2h8l4 10H4L8 2zM6 12v6a2 2 0 002 2h8a2 2 0 002-2v-6"/></svg>',
+  drink: '<svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M17 8h1a4 4 0 110 8h-1M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8zM6 2v3M10 2v3M14 2v3"/></svg>',
+  bus: '<svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><rect x="4" y="3" width="16" height="16" rx="2"/><path d="M4 11h16M8 15h.01M16 15h.01M9 3v18M15 3v18"/></svg>',
+  game: '<svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M6 11h4M14 11h4M10 7h4M16 15a2 2 0 11-4 0M8 15a2 2 0 11-4 0"/><rect x="2" y="6" width="20" height="12" rx="2"/></svg>',
+  movie: '<svg viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m10 9-5 3 5 3V9zM19 9l-5 3 5 3V9z"/></svg>',
+  book: '<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>',
+  music: '<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="8" cy="18" r="4"/><path d="M12 18V2l7 4"/></svg>',
+  skin: '<svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  delivery: '<svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><circle cx="7" cy="17" r="2"/><path d="M7 15V5a2 2 0 012-2h8l4 4v8"/><circle cx="17" cy="17" r="2"/></svg>',
+  fruit: '<svg viewBox="0 0 24 24" fill="none" stroke="#fb7185" stroke-width="2"><path d="M12 2a8 8 0 00-8 8c0 5.4 4 10 8 14"/><path d="M12 2a8 8 0 018 8c0 5.4-4 10-8 14"/><path d="M12 2v4"/></svg>',
+  phone_charge: '<svg viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>',
+  parking: '<svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V7h4a3 3 0 010 6H9"/></svg>',
+  tip: '<svg viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>',
+  custom: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let bk = {
+  balance: 0,           // Current balance
+  totalDeposited: 0,     // Total ever deposited
+  totalSpent: 0,         // Total ever spent
+  transactions: [],       // [{type:'spend'|'deposit', amount, name, time}]
+  lastDepositTime: null, // Last time we deposited earned money
+  pendingEarned: 0       // Earned but not yet deposited
+};
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
+let balanceInterval = null;
+
+function init() {
+  initTheme();
+  loadBKState();
+
+  // Read shared salary config from main app's localStorage
+  const savedState = localStorage.getItem('salarystream_state');
+  if (!savedState) {
+    showNoSetup();
+    return;
+  }
+
+  let parsed;
+  try { parsed = JSON.parse(savedState); } catch(e) { parsed = null; }
+
+  if (!parsed || !parsed.monthlySalary || parsed.monthlySalary <= 0) {
+    showNoSetup();
+    return;
+  }
+
+  // We have valid salary config → show bookkeeping UI
+  showBookUI(parsed);
+
+  renderShopGrid();
+  renderHistory();
+  startBalanceUpdater(parsed);
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('salarystream_theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+}
+
+function showNoSetup() {
+  document.getElementById('noSetupPanel').style.display = '';
+  document.getElementById('bookUI').style.display = 'none';
+}
+
+function showBookUI(salaryConfig) {
+  document.getElementById('noSetupPanel').style.display = 'none';
+  document.getElementById('bookUI').style.display = '';
+
+  if (salaryConfig.secondlyRate > 0) {
+    document.getElementById('flowRateDisplay').textContent = salaryConfig.secondlyRate.toFixed(4);
+    document.getElementById('flowIndicator').style.display = '';
+  }
+}
+
+// ============================================================
+// STATE PERSISTENCE
+// ============================================================
+const BK_KEY = 'salarystream_bookkeeping';
+
+function loadBKState() {
+  const saved = localStorage.getItem(BK_KEY);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      bk = { ...bk, ...parsed };
+    } catch(e) {}
+  }
+}
+
+function saveBKState() {
+  try {
+    localStorage.setItem(BK_KEY, JSON.stringify({
+      balance: bk.balance,
+      totalDeposited: bk.totalDeposited,
+      totalSpent: bk.totalSpent,
+      transactions: bk.transactions.slice(-200), // keep last 200 txs
+      lastDepositTime: bk.lastDepositTime,
+      pendingEarned: bk.pendingEarned
+    }));
+  } catch(e) {}
+}
+
+// ============================================================
+// REAL-TIME BALANCE UPDATER — reads from main app's earnings
+// ============================================================
+function startBalanceUpdater(salaryConfig) {
+  if (balanceInterval) clearInterval(balanceInterval);
+
+  balanceInterval = setInterval(() => {
+    // Re-read the latest state from main app
+    const raw = localStorage.getItem('salarystream_state');
+    if (!raw) return;
+    let state;
+    try { state = JSON.parse(raw); } catch(e) { return; }
+
+    if (!state || !state.startTime || !state.secondlyRate) return;
+
+    const elapsed = (Date.now() - state.startTime) / 1000;
+    const realtimeEarned = (state.todayStartEarnings || 0) + elapsed * state.secondlyRate;
+
+    // Track how much has been newly earned since last check
+    bk.pendingEarned = realtimeEarned;
+
+    updateBalanceDisplay(state.secondlyRate);
+  }, 200); // Update every 200ms
+}
+
+function updateBalanceDisplay(secondlyRate) {
+  document.getElementById('balanceDisplay').textContent = bk.balance.toFixed(2);
+  document.getElementById('totalDeposited').textContent = '¥' + Math.round(bk.totalDeposited).toLocaleString();
+  document.getElementById('totalSpent').textContent = '¥' + Math.round(bk.totalSpent).toLocaleString();
+
+  // Show pending (un-deposited) income in subtitle area if significant
+  if (bk.pendingEarned > 0 && secondlyRate > 0) {
+    document.getElementById('flowRateDisplay').textContent = secondlyRate.toFixed(4);
+  }
+}
+
+// ============================================================
+// DEPOSIT ACTIONS
+// ============================================================
+
+// Deposit all earned income into balance
+function depositAll() {
+  const raw = localStorage.getItem('salarystream_state');
+  if (!raw) return;
+  let state;
+  try { state = JSON.parse(raw); } catch(e) { return; }
+
+  if (!state || !state.startTime || !state.secondlyRate) {
+    alert('没有正在运行的收入数据');
+    return;
+  }
+
+  const elapsed = (Date.now() - state.startTime) / 1000;
+  const amount = (state.todayStartEarnings || 0) + elapsed * state.secondlyRate;
+
+  if (amount <= 0) {
+    alert('当前收入为 ¥0，先工作一会儿再来存吧~');
+    return;
+  }
+
+  doDeposit(amount, '存入全部收入');
+
+  // Reset the main app's timer so it starts counting fresh from 0
+  state.todayStartEarnings = 0;
+  state.startTime = Date.now();
+  try { localStorage.setItem('salarystream_state', JSON.stringify(state)); } catch(e) {}
+
+  bk.pendingEarned = 0;
+}
+
+function depositCustom() {
+  const input = prompt('请输入要存入的金额（元）：');
+  if (!input) return;
+  const amount = parseFloat(input);
+  if (!amount || amount <= 0) { alert('请输入有效金额'); return; }
+  doDeposit(amount, '自定义存入');
+  bk.pendingEarned = Math.max(0, bk.pendingEarned - amount);
+}
+
+function doDeposit(amount, desc) {
+  bk.balance += amount;
+  bk.totalDeposited += amount;
+  addTransaction('deposit', amount, desc || '存入');
+  saveBKState();
+  updateBalanceDisplay(0);
+  spawnFloatNumber(amount, true);
+  renderHistory();
+}
+
+// ============================================================
+// SPEND / BUY ACTIONS
+// ============================================================
+
+function buyItem(item, event) {
+  if (item.id === 'custom') {
+    handleCustomPurchase();
+    return;
+  }
+
+  if (bk.balance < item.price) {
+    // Insufficient funds — shake effect
+    const card = event.currentTarget;
+    card.classList.add('shake');
+    setTimeout(() => card.classList.remove('shake'), 500);
+
+    // Show red float showing shortfall
+    const short = item.price - bk.balance;
+    spawnFloatNumberAt(short, event, false, true); // true = shortfall mode
+    return;
+  }
+
+  // Can afford!
+  bk.balance -= item.price;
+  bk.totalSpent += item.price;
+  addTransaction('spend', item.price, item.name, item.id);
+  saveBKState();
+  updateBalanceDisplay(0);
+  renderHistory();
+  updateShopStates();
+
+  // 🎯 RED FLOATING NUMBER EFFECT
+  spawnFloatNumberAt(item.price, event, false);
+}
+
+function handleCustomPurchase() {
+  const nameInput = prompt('购买物品名称：');
+  if (!nameInput) return;
+  const priceInput = prompt('花费金额（元）：');
+  if (!priceInput) return;
+  const price = parseFloat(priceInput);
+  if (!price || price <= 0) { alert('请输入有效金额'); return; }
+
+  if (bk.balance < price) {
+    alert(`余额不足！需要 ¥${price.toFixed(2)}，当前余额 ¥${bk.balance.toFixed(2)}`);
+    return;
+  }
+
+  bk.balance -= price;
+  bk.totalSpent += price;
+  addTransaction('spend', price, nameInput, 'custom');
+  saveBKState();
+  updateBalanceDisplay(0);
+  renderHistory();
+  spawnFloatNumber(price, false);
+}
+
+// ============================================================
+// FLOATING NUMBER EFFECT ★ THE STAR FEATURE
+// ============================================================
+
+function spawnFloatNumber(amount, isDeposit) {
+  const layer = document.getElementById('floatLayer');
+  const el = document.createElement('div');
+  el.className = `float-number ${isDeposit ? 'deposit' : 'spend'}`;
+  el.textContent = (isDeposit ? '+¥' : '-¥') + amount.toFixed(2);
+
+  // Randomize horizontal position in center-ish area
+  const x = 35 + Math.random() * 30; // 35%-65% of screen width
+  el.style.left = x + '%';
+  el.style.top = '35%';
+
+  layer.appendChild(el);
+  setTimeout(() => el.remove(), 1600);
+}
+
+function spawnFloatNumberAt(amount, mouseEvent, isDeposit, isShortfall) {
+  const layer = document.getElementById('floatLayer');
+  const el = document.createElement('div');
+  el.className = `float-number spend`;
+
+  if (isShortfall) {
+    el.textContent = '差 ¥' + amount.toFixed(2);
+    el.style.color = '#fbbf24'; // yellow for shortfall
+    el.style.fontSize = 'clamp(1rem, 2.5vw, 1.4rem)';
+  } else {
+    el.textContent = '-¥' + amount.toFixed(2);
+  }
+
+  // Position near the clicked element
+  const rect = mouseEvent.currentTarget.getBoundingClientRect();
+  el.style.left = (rect.left + rect.width / 2) + 'px';
+  el.style.top = rect.top + 'px';
+
+  layer.appendChild(el);
+  setTimeout(() => el.remove(), 1600);
+}
+
+// ============================================================
+// TRANSACTION HISTORY
+// ============================================================
+
+function addTransaction(type, amount, name, iconId) {
+  bk.transactions.unshift({
+    type: type,
+    amount: amount,
+    name: name,
+    iconId: iconId || (type === 'deposit' ? 'coffee' : 'custom'),
+    time: Date.now()
+  });
+}
+
+function renderHistory() {
+  const list = document.getElementById('txList');
+  document.getElementById('txCount').textContent = bk.transactions.length + ' 笔';
+
+  if (bk.transactions.length === 0) {
+    list.innerHTML = `<div class="tx-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M16 10a4 4 0 01-8 0"/><path d="M3 6h18"/></svg>
+      还没有记录，买点东西吧~
+    </div>`;
+    return;
+  }
+
+  let html = '';
+  bk.transactions.forEach(tx => {
+    const iconSvg = ICON_SVG[tx.iconId] || ICON_SVG.custom.replace('stroke="currentColor"', `stroke="${tx.type === 'deposit' ? '#10b981' : '#ef4444'}"`);
+    const timeStr = formatTime(tx.time);
+    const sign = tx.type === 'deposit' ? '+' : '-';
+    const cls = tx.type === 'deposit' ? 'positive' : 'negative';
+
+    html += `
+      <div class="tx-item">
+        <div class="tx-icon" style="background:${tx.type === 'deposit' ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)'}">
+          ${iconSvg}
+        </div>
+        <div class="tx-info">
+          <div class="tx-desc">${sign} ${tx.name}</div>
+          <div class="tx-time">${timeStr}</div>
+        </div>
+        <div class="tx-amount ${cls}">${sign}¥${tx.amount.toFixed(2)}</div>
+      </div>`;
+  });
+
+  list.innerHTML = html;
+}
+
+function formatTime(ts) {
+  const d = new Date(ts);
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  if (d.toDateString() === now.toDateString()) {
+    return '今天 ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  }
+  const yesterday = new Date(now); yesterday.setDate(yesterday.getDate()-1);
+  if (d.toDateString() === yesterday.toDateString()) {
+    return '昨天 ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+  return (d.getMonth()+1)+'/'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+}
+
+// ============================================================
+// SHOP GRID
+// ============================================================
+
+function renderShopGrid() {
+  const grid = document.getElementById('shopGrid');
+  document.getElementById('shopCount').textContent = (SHOP_ITEMS.length - 1) + ' 件';
+
+  let html = '';
+  SHOP_ITEMS.forEach(item => {
+    const isCustom = item.id === 'custom';
+    const canAfford = bk.balance >= item.price;
+
+    html += `
+      <div class="shop-card ${isCustom ? 'custom-shop-card' : ''} ${!canAfford && !isCustom ? 'disabled' : ''}"
+           onclick="buyItem(SHOP_ITEMS.find(i=>i.id==='${item.id}'), event)">
+        <div class="shop-icon-wrap" style="background:${item.bg}">
+          ${item.id === 'custom'
+            ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`
+            : `<span style="font-size:24px">${item.icon}</span>`}
+        </div>
+        <div class="shop-name">${item.name}</div>
+        <div class="shop-price">${isCustom ? '' : '¥' + item.price}</div>
+        <div class="shop-buy-hint">
+          ${isCustom
+            ? '自定义金额消费'
+            : (canAfford ? '点击购买' : `<span style="color:#ef4444;">还差 ¥${(item.price - bk.balance).toFixed(0)}</span>`)}
+        </div>
+      </div>`;
+  });
+
+  grid.innerHTML = html;
+}
+
+function updateShopStates() {
+  renderShopGrid();
+}
+
+// ============================================================
+// RESET
+// ============================================================
+
+function resetBalance() {
+  if (!confirm('确定要重置所有账本数据吗？\n\n这将清空存款、流水和消费记录，且无法恢复。')) return;
+  bk = {
+    balance: 0, totalDeposited: 0, totalSpent: 0,
+    transactions: [], lastDepositTime: null, pendingEarned: 0
+  };
+  localStorage.removeItem(BK_KEY);
+  updateBalanceDisplay(0);
+  renderShopGrid();
+  renderHistory();
+}
+
+// ============================================================
+// START
+// ============================================================
+init();
+</script>
+</body>
+</html>
